@@ -1,7 +1,9 @@
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/dpms.h>
+#include <X11/keysym.h>
+#include <X11/keysymdef.h>
 
-static void WakeUp(Display *display) {
+/*static void WakeUp(Display *display) {
 	CARD16 power_level = 0;
 	BOOL state = 0;
 	Status status = 0;
@@ -11,12 +13,12 @@ static void WakeUp(Display *display) {
 		DPMSForceLevel(display, 0);
 
 	XResetScreenSaver(display);
-}
+}*/
 
 static inline void SendKeycode(int keyCode) {
 	Display *display = XOpenDisplay(NULL);
 	if (display != NULL) {
-		WakeUp(display);
+		//WakeUp(display);
 
 		switch (keyCode)
 		{
@@ -35,6 +37,34 @@ static inline void SendKeycode(int keyCode) {
 	}
 }
 
+static inline void SendKeysymWithShiftKey(int keySym) {
+	Display *display = XOpenDisplay(NULL);
+	KeyCode kc;
+	if (display != NULL) {
+		// set keycode
+		kc = XKeysymToKeycode(display, keySym);
+
+		// if the specified KeySym is defined
+		if (kc != 0) {
+			//WakeUp(display);
+
+			kc = XKeysymToKeycode (display, XK_Shift_L);
+			XTestFakeKeyEvent(display, kc, True, CurrentTime);
+			XFlush(display);
+
+			kc = XKeysymToKeycode(display, keySym);
+			XTestFakeKeyEvent(display, kc, True, CurrentTime );
+			XTestFakeKeyEvent(display, kc, False, CurrentTime );
+			XFlush(display);
+
+			kc = XKeysymToKeycode (display, XK_Shift_L);
+			XTestFakeKeyEvent(display, kc, False, CurrentTime);
+			XFlush(display);
+		}
+		XCloseDisplay(display);
+	}
+}
+
 static inline void SendKeysym(int keySym) {
 	Display *display = XOpenDisplay(NULL);
 	KeyCode kc;
@@ -43,7 +73,7 @@ static inline void SendKeysym(int keySym) {
 		kc = XKeysymToKeycode(display, keySym);
 		// if the specified KeySym is defined
 		if (kc != 0) {
-                	WakeUp(display);
+                	//WakeUp(display);
 			XTestFakeKeyEvent(display, kc, True, CurrentTime );
 			XTestFakeKeyEvent(display, kc, False, CurrentTime );
 			XFlush(display);
@@ -55,7 +85,7 @@ static inline void SendKeysym(int keySym) {
 static inline void SendClick(int button, Bool down) {
 	Display *display = XOpenDisplay(NULL);
 	if (display != NULL) {
-                WakeUp(display);
+                //WakeUp(display);
 
 		XTestFakeButtonEvent(display, button, down, CurrentTime);
 		XFlush(display);
@@ -66,7 +96,7 @@ static inline void SendClick(int button, Bool down) {
 static inline void SendMouseMove(int X, int Y) {
 	Display *display = XOpenDisplay(NULL);
 	if (display != NULL) {
-                WakeUp(display);
+                //WakeUp(display);
 
 		XTestFakeRelativeMotionEvent(display, X, Y, CurrentTime);
 		XFlush(display);

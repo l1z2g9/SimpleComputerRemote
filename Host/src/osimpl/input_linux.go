@@ -5,6 +5,10 @@ package osimpl
 //#cgo LDFLAGS: -lX11 -lXtst -lXext
 //#include "input_linux.c"
 import "C"
+import "fmt"
+
+// ! @ # $ % ^ & * ( ) { | } < > ? " + :
+var keys = [...]rune{33, 64, 35, 36, 37, 94, 38, 42, 40, 41, 123, 124, 125, 60, 62, 63, 34, 43, 58}
 
 func SendKeycode(keyCode uint8) {
 	C.SendKeycode(C.int(keyCode))
@@ -17,7 +21,20 @@ func SendKeyboardString(toSend string) {
 }
 
 func sendKeyboardRune(toSend rune) {
-	C.SendKeysym(C.int(toSend))
+	fmt.Println("toSend ", toSend)
+	for _, key := range keys {
+		if toSend == key {
+			C.SendKeysymWithShiftKey(C.int(toSend))
+			return
+		}
+	}
+
+	switch {
+	case 65 <= toSend && toSend <= 90: // A-Z
+		C.SendKeysymWithShiftKey(C.int(toSend))
+	default:
+		C.SendKeysym(C.int(toSend))
+	}
 }
 
 func MoveMouse(X, Y int) {
